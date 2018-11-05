@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ashil/react-test -f ./client/Dockerfile.dev .
+
+#test runner section
+script:
+  - docker run ashil/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t ashil/multi-docker-client ./client
+  - docker build -t ashil/multi-docker-server ./server
+  - docker build -t ashil/multi-docker-worker ./worker
+  - docker build -t ashil/multi-docker-nginx ./nginx
+  # login to docker hub
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #push images to docker hub
+  - docker push ashil/multi-docker-client
+  - docker push ashil/multi-docker-server
+  - docker push ashil/multi-docker-worker
+  - docker push ashil/multi-docker-nginx
